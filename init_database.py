@@ -1,3 +1,3 @@
-from flaskr import init_db
+from classifier_app import init_db
 
 init_db()
