@@ -16,3 +16,14 @@
     </form>
     '''
 
+
+
+  {% if session.logged_in %}
+    <form action="" method=post class=add-entry enctype=multipart/form-data>
+      <dl>
+        <dt>Labeled Dataset
+        <dd><input type=file name=file>
+        <dd><input type=submit value=Upload Dataset>
+      </dl>
+    </form>
+  {% endif %}

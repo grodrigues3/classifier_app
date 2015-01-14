@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+
+{% block body %}
+  <h1>Model Training</h1>
+  <h2> Select Your Dataset </h2>
+  {%if data|length == 0 %}
+    <h3> No data has been uploaded </h3>
+  {% else %}
+      <select>
+      {% for fn in data %}
+        <option>{{ fn }}</option> 
+      {% endfor %}
+      </select>
+  {% endif %}
+  <h2> Select Your Model </h2>
+  {%if models|length == 0 %}
+    <h3> No models are available </h3>
+  {%else %}
+      <select>
+      {% for mod in models %}
+        <li><option>{{ mod }}</option> 
+      {% endfor %}
+      </select>
+  {% endif %}
+
+  <form action = ""{{ url_for('train_model') }} method="POST">
+    <input type = "submit" value = "Train Model!" id = "subButton"> 
+  <form>
+
+
+{% endblock %}
+
+
+
