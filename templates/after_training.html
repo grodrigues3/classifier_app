@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+      <ul class=results>
+        <li> Training Accuracy: {{results[0]}}
+        <li> Lambda: {{results[1]}}
+      </ul>
+
+      <form action="" method=post class=add-entry enctype=multipart/form-data>
+      <dl>
+        <dt> Would you like to test your model?
+        <dd><input type=file name=file>
+        <dd><input type=submit value=Upload Dataset>
+      </dl>
+    </form>
+  {% endif %}
+{% endblock %}

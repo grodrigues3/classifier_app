@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <form action="" method=post class=add-entry enctype=multipart/form-data>
+      <dl>
+        <dt> Upload a Training Dataset
+        <dd id = descr> Choose either a csv file, or tsv file such that each line of the file contains a training example in the format &lttraining label&gt &ltdelimiter&gt &ltdocument&gt
+        <dd><input type=file name=file>
+        <dd><input type=submit value=Upload Dataset>
+      </dl>
+    </form>
+  {% endif %}
+{% endblock %}

@@ -2,31 +2,34 @@
 
 
 {% block body %}
-  <h1>Model Training</h1>
-  <h2> Select Your Dataset </h2>
-  {%if data|length == 0 %}
+  <h2>Model Training</h2>
+   <h3> Select Your Dataset </h3>
+  <form action ="{{ url_for('train_model') }}"  method="GET" id="dataAndModel" name=dataAndModel>
+  {%if data|length < 1 %}
     <h3> No data has been uploaded </h3>
   {% else %}
-      <select>
+    <ul>
+      <li><select form = "dataAndModel" id =dataFile name=dataFile>
       {% for fn in data %}
-        <option>{{ fn }}</option> 
+      <option>{{ fn }}</option> 
       {% endfor %}
       </select>
   {% endif %}
-  <h2> Select Your Model </h2>
-  {%if models|length == 0 %}
+  
+  {%if models|length < 1 %}
     <h3> No models are available </h3>
   {%else %}
-      <select>
+      <li><select form="dataAndModel" name=model>
       {% for mod in models %}
-        <li><option>{{ mod }}</option> 
+      <option>{{ mod }}</option> 
       {% endfor %}
       </select>
+
+      <li><input type = "submit" value = "Train Model!" id = "subButton"> 
+  </ul>
   {% endif %}
 
-  <form action = ""{{ url_for('train_model') }} method="POST">
-    <input type = "submit" value = "Train Model!" id = "subButton"> 
-  <form>
+  </form>
 
 
 {% endblock %}
