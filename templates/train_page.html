@@ -19,7 +19,7 @@
   {%if models|length < 1 %}
     <h3> No models are available </h3>
   {%else %}
-      <li><select form="dataAndModel" name=model>
+      <li><select form="dataAndModel" name=model id=modSelect onchange = 'displayOptions()'>
       {% for mod in models %}
       <option>{{ mod }}</option> 
       {% endfor %}
@@ -29,10 +29,48 @@
   </ul>
   {% endif %}
 
+  <div id = "moreOptions" > </div>
+
   </form>
+
+  
+
+  <script type='text/javascript'>
+    function displayOptions(){
+
+        if( document.getElementById('modSelect').value == "Logistic Regression"){
+            var representationSelect=document.createElement('select');
+            representationSelect.id = 'rep'
+            representationSelect.setAttribute('onchange', 'maxFeats()')
+            representationSelect.setAttribute('form', 'dataAndModel')
+            representationSelect.setAttribute('name', 'representation')
+            var opt = document.createElement("option");
+            opt.innerHTML = "Bag of Words"; // whatever property it has
+            var opt1 = document.createElement("option");
+            opt1.innerHTML = "Hashing Trick"; // whatever property it has
+            representationSelect.appendChild(opt);
+            representationSelect.appendChild(opt1);
+            document.getElementById('moreOptions').appendChild(representationSelect);
+                            
+        }
+    }
+
+    function maxFeats(){
+         
+        if( document.getElementById('rep').value == "Hashing Trick"){
+            var maxFeatSelect=document.createElement('input');
+            maxFeatSelect.id = 'maxFeat'
+            maxFeatSelect.setAttribute('type', 'text')
+            maxFeatSelect.setAttribute('form', 'dataAndModel')
+            maxFeatSelect.setAttribute('name', 'maxFeatures')
+            maxFeatSelect.setAttribute('value', 'how many features should be used? (e.g 1000, 100)')
+            document.getElementById('dataAndModel').appendChild(maxFeatSelect);
+    }
+    }
+
+    displayOptions()
+
+  </script>
 
 
 {% endblock %}
-
-
-

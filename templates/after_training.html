@@ -1,10 +1,18 @@
 {% extends "layout.html" %}
+
+
+
 {% block body %}
-  {% if session.logged_in %}
-      <ul class=results>
-        <li> Training Accuracy: {{results[0]}}
-        <li> Lambda: {{results[1]}}
-      </ul>
+    {% if session.logged_in %}
+
+    {% for myResult in results %}
+        <h3> Lambda: {{myResult[2]}}  </h3>
+          <ul class=results>
+                <li> Training Accuracy: {{ myResult[0] }}
+                <li> Validation Accuracy: {{myResult[1]}}
+          </ul>
+
+    {% endfor %}
 
       <form action="" method=post class=add-entry enctype=multipart/form-data>
       <dl>
@@ -13,5 +21,6 @@
         <dd><input type=submit value=Upload Dataset>
       </dl>
     </form>
+
   {% endif %}
 {% endblock %}

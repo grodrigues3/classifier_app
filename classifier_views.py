@@ -22,7 +22,7 @@ app = Flask(__name__)
 
 #Loads the above configuration settings based on the config params set above
 app.config.from_object(__name__)
-global cm
+
 @app.route('/', methods = ["GET", "POST"])
 def upload_training():
     if request.method == "GET":
@@ -33,11 +33,13 @@ def upload_training():
             print 'file is allowed'
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_TRAIN_FOLDER'], filename))
-            print 'going to upload'
-            return redirect(url_for('send_file',
-                                    filename=filename, whereNext=1))
+            return redirect(url_for('select_training'))
+            #return redirect(url_for('send_file',
+                                    #filename=filename, whereNext=1))
         flash("You're file could not be uploaded")
         return redirect(url_for('upload_training'))
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -71,9 +73,8 @@ def send_file(filename, whereNext):
     send_from_directory(app.config['UPLOAD_TRAIN_FOLDER'], filename)
     if whereNext == 1:
         return redirect(url_for('select_training'))
-    elif whereNext == 2:
+    elif whereNext == 2: #if the data has been uploaded
         return render_template("after_training.html", results = [0,0])
-        #eturn redirect(url_for('train_model'), code=307)
 
 
 @app.route('/select_page/', methods = ["GET"])
@@ -85,13 +86,12 @@ def select_training():
 
 
 
-
 @app.route('/train_model/', methods = ["GET", "POST"])
 def train_model():
     if request.method == "GET":
-        print "Training the model..."
         train = .7
         lamb = 1
+        print request.args
         filename = request.args['dataFile']
         modelType = request.args['model']
         fileExt = filename.rsplit('.', 1)[1].lower()
@@ -101,28 +101,24 @@ def train_model():
         if fileExt == "tsv":
             delimiter = "\t"
         dataMat, labels = cm.getData(filename, delimiter)
-        X_train, y_train, X_test, y_test = cm.train_test_split(dataMat, labels)
-        cm.fit(X_train, y_train)
-        trainRes = "{0:.3f}".format(cm.score(dataMat,labels))
-        testRes = 0
-        return redirect( url_for('after_training', res = trainRes, lamb = lamb))
+        res = cm.perform_CV(dataMat, labels, regValues= [1,5])
+        return render_template("after_training.html", results = res)
+    elif request.method == "POST":
+        return redirect(url_for('after_training'), code=307)
+        
 
-@app.route('/after_training/<res>/<lamb>', methods = ["GET", "POST"])
-def after_training(res=None, lamb=None):
+@app.route('/after_training/', methods = ["POST"])
+def after_training():
     #the post request indicates a test dataset is being uploaded
-    print request, "\n"*5
-    if request.method == "GET":
-        return render_template("after_training.html", results = [res,lamb])
     if request.method == "POST":
         file = request.files['file']
-        print file, 'in here'
         if file and allowed_file(file.filename):
             print 'file is allowed'
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_TEST_FOLDER'], filename))
-            print filename
             return redirect(url_for('test_model', test_fn=filename ))
         flash("You're file could not be uploaded")
+        print "youre file could not be uploaded" * 100
         return redirect(url_for('train_model'))
 
 
