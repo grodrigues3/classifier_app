@@ -1,0 +1,144 @@
+
+{% extends "layout.html" %}
+
+
+{% block body %}
+    {% if session.logged_in %}
+
+    <h2> Training Set Information </h2>
+    <ul>
+        <li><h4> Total Documents: {{ totalDocs}} </h4>
+        <li> <h4> Vocabulary Size: {{uniqueWords }} </h4>
+    </ul>
+    <h2> Base Rates </h2>
+    <ul>
+    <li><table id = "rateTable">
+        <tr>
+            <th>Class</th>
+            <th>Total Occurences</th>
+            <th>Rate</th>
+        </tr>
+        {% for name, value in baseRates.iteritems() %}
+            <tr> 
+                <td>{{ name }} </td>
+                <td>{{ value[0]}}</td>
+                <td>{{value[1]}} </td>
+            </tr>
+
+        {% endfor %}
+
+    </table>
+    </ul>
+    <h2> Configure Training </h2>
+    <form action="{{ url_for('train_model') }}" id="modelAndRep" method="GET" class=add-entry>
+    <ul id="formInputs">
+        <input type=hidden value="{{filename}}" name="filename" form = modelAndRep>
+        <input type=hidden value="{{uniqueWords}}" name="uniqueWords" form = modelAndRep>
+        <!--
+        <p> Enter a comma separated list of values for the regularization term (grid-search) </p> 
+        <input type=text value="1,10,100" name="regRange" form = modelAndRep> <br> <br>
+        //-->
+        {% if models|length < 1 %}
+              <h3> No models are available </h3>
+        {% else %}
+            <h4> Model Selection </h4>
+            <p>Choose your model</p>
+            <li><select form="modelAndRep" name="model" id="modSelect" onchange = "displayOptions()">
+
+            {% for mod in models %}
+                <option>{{ mod }}</option> 
+            {% endfor %}
+
+
+            </select>
+
+        {% endif %}
+
+          <div id = "moreOptions" > </div>
+
+        <p> Do you want to perform validation</p>
+        <li><select form="modelAndRep" name="val" id ="valBool">
+            <option>Validation On</option>
+            <option>Validation Off</option>
+        </select> 
+
+        
+      <li><input type = "submit" value = "Train Model" id = "subButton"> 
+
+      </ul>
+    </form>
+
+  {% endif %}
+
+
+  <script type='text/javascript'>
+    function displayOptions(){
+
+        if( document.getElementById('modSelect').value == "SGD_Classifier"){
+            var representationSelect=document.createElement('select');
+            representationSelect.id = 'rep';
+            representationSelect.setAttribute('onchange', 'maxFeats()');
+            representationSelect.setAttribute('form', 'modelAndRep');
+            representationSelect.setAttribute('name', 'representation');
+
+            
+            var repDesc = document.createElement('p');
+            repDesc.id = 'iterDescriptor'
+            repDesc.innerHTML = "Choose the representation for the data"
+
+            var nIters=document.createElement('input');
+            var nItersDesc = document.createElement('p');
+            nItersDesc.id = 'iterDescriptor'
+            nItersDesc.innerHTML = "Enter the number of iterations for SGD.  Leave blank for default"
+            
+            nIters.id = 'nIters';
+            nIters.setAttribute('type', 'text');
+            nIters.setAttribute('form', 'modelAndRep');
+            nIters.setAttribute('name', 'nIters');
+
+            var opt = document.createElement("option");
+            opt.innerHTML = "Hashing Trick"; // whatever property it has
+            representationSelect.appendChild(opt);
+
+            //var opt1 = document.createElement("option");  
+            //opt1.innerHTML = "Bag of Words"; // whatever property it has
+            //representationSelect.appendChild(opt1);
+            document.getElementById('moreOptions').appendChild(representationSelect);
+            document.getElementById('moreOptions').insertBefore(repDesc, representationSelect);
+
+            document.getElementById('moreOptions').appendChild(nIters);
+            document.getElementById('moreOptions').insertBefore(nItersDesc, nIters);
+        }else{
+            var el = document.getElementById('rep');
+            el.parentNode.removeChild(el);
+            var el = document.getElementById('description');
+            el.parentNode.removeChild(el);
+            var el = document.getElementById('maxFeat');
+            el.parentNode.removeChild(el);
+        }
+        maxFeats();
+    }
+
+    function maxFeats(){
+         
+        if( document.getElementById('rep').value == "Hashing Trick"){
+            var maxFeatSelect=document.createElement('input');
+            maxFeatSelect.id = 'maxFeat'
+            maxFeatSelect.setAttribute('type', 'text')
+            maxFeatSelect.setAttribute('form', 'modelAndRep')
+            maxFeatSelect.setAttribute('name', 'numFeatures')
+            document.getElementById('moreOptions').appendChild(maxFeatSelect);
+            
+            var desc = document.createElement('p');
+            desc.id = 'description'
+            desc.innerHTML = "Enter the number of features to be used during the hashing trick. Leave blank to let the algorithm decide."
+            document.getElementById('moreOptions').insertBefore(desc, maxFeatSelect);
+
+
+        }
+    }
+
+    displayOptions()
+
+  </script>
+{% endblock %}

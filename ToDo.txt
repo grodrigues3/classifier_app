@@ -1,0 +1,6 @@
+
+- add optional test_labels so they can check classifier performance
+- display reguarlization constant chosen
+- make data upload, matrix building and training asyncrhonous
+- redirect to login if session not logged in, DONE
+- global change global cm variable

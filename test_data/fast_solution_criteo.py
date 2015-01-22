@@ -1,139 +1,162 @@
-'''
-           DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
-                   Version 2, December 2004
-
-Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
-
-Everyone is permitted to copy and distribute verbatim or modified
-copies of this license document, and changing it is allowed as long
-as the name is changed.
-
-           DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
-  TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-
- 0. You just DO WHAT THE FUCK YOU WANT TO.
-'''
-
-
 from datetime import datetime
 from csv import DictReader
 from math import exp, log, sqrt
-
+from string import maketrans, punctuation
+import pdb
 
 # parameters #################################################################
 
-train = 'movie_train.tsv'  # path to training file
-test = 'movie_test.tsv'  # path to testing file
 
-D = 2 ** 20   # number of weights use for learning
-alpha = .1    # learning rate for sgd optimization
 
 
 # function definitions #######################################################
+class SGDClassifier:
 
-# A. Bounded logloss
-# INPUT:
-#     p: our prediction
-#     y: real answer
-# OUTPUT
-#     logarithmic loss of p given y
-def logloss(p, y):
-    p = max(min(p, 1. - 10e-12), 10e-12)
-    return -log(p) if y == 1. else -log(1. - p)
+    def __init__(self):
+        self.labelDict = {}
+        self.reverseDict = {}
+        self.w = None
 
+        self.D = 10**6   # number of weights use for learning
+        self.alpha = 1    # learning rate for sgd optimization
 
-# B. Apply hash trick of the original csv row
-# for simplicity, we treat both integer and categorical features as categorical
-# INPUT:
-#     csv_row: a csv dictionary, ex: {'Lable': '1', 'I1': '357', 'I2': '', ...}
-#     D: the max index that we can hash to
-# OUTPUT:
-#     x: a list of indices that its value is 1
-def get_x(txt_line, D):
-    x = [0]  # 0 is the index of the bias term
-    for word in txt_line.split():
-        index = hash(word) % D  
-        x.append(index)
-    return x  # x contains indices of features that have a value of 1
+    # A. Bounded logloss
+    # INPUT:
+    #     p: our prediction
+    #     y: real answer
+    # OUTPUT
+    #     logarithmic loss of p given y
+    def logloss(self, p, y):
+        p = max(min(p, 1. - 10e-12), 10e-12)
+        return -log(p) if y == 1. else -log(1. - p)
 
 
-# C. Get probability estimation on x
-# INPUT:
-#     x: features
-#     w: weights
-# OUTPUT:
-#     probability of p(y = 1 | x; w)
-def get_p(x, w):
-    wTx = 0.
-    for i in x:  # do wTx
-        wTx += w[i] * 1.  # w[i] * x[i], but if i in x we got x[i] = 1.
-    return 1. / (1. + exp(-max(min(wTx, 20.), -20.)))  # bounded sigmoid
+    # B. Apply hash trick of the original csv row
+    # for simplicity, we treat both integer and categorical features as categorical
+    # INPUT:
+    #     csv_row: a csv dictionary, ex: {'Lable': '1', 'I1': '357', 'I2': '', ...}
+    #     D: the max index that we can hash to
+    # OUTPUT:
+    #     x: a list of indices that its value is 1
+    def get_x(self, txt_line, D):
+        x = [0]  # 0 is the index of the bias term
+        stripped = txt_line.translate(maketrans("",""), punctuation)
+        for word in stripped.split():
+            index = hash(word) % D  
+            x.append(index)
+        return x  # x contains indices of features that have a value of 1
 
 
-# D. Update given model
-# INPUT:
-#     w: weights
-#     n: a counter that counts the number of times we encounter a feature
-#        this is used for adaptive learning rate
-#     x: feature
-#     p: prediction of our model
-#     y: answer
-# OUTPUT:
-#     w: updated model
-#     n: updated count
-def update_w(w, n, x, p, y):
-    for i in x:
-        # alpha / (sqrt(n) + 1) is the adaptive learning rate heuristic
-        # (p - y) * x[i] is the current gradient
-        # note that in our case, if i in x then x[i] = 1
-        w[i] -= (p - y) * alpha / (sqrt(n[i]) + 1.)
-        n[i] += 1.
-
-    return w, n
+    # C. Get probability estimation on x
+    # INPUT:
+    #     x: features
+    #     w: weights
+    # OUTPUT:
+    #     probability of p(y = 1 | x; w)
+    def get_p(self, x, w):
+        wTx = 0.
+        for i in x:  # do wTx
+            wTx += w[i] * 1.  # w[i] * x[i], but if i in x we got x[i] = 1.
+        return 1. / (1. + exp(-max(min(wTx, 20.), -20.)))  # bounded sigmoid
 
 
-# training and testing #######################################################
+    # D. Update given model
+    # INPUT:
+    #     w: weights
+    #     n: a counter that counts the number of times we encounter a feature
+    #        this is used for adaptive learning rate
+    #     x: feature
+    #     p: prediction of our model
+    #     y: answer
+    # OUTPUT:
+    #     w: updated model
+    #     n: updated count
+    def update_w(self, w, n, x, p, y):
+        for i in x:
+            # alpha / (sqrt(n) + 1) is the adaptive learning rate heuristic
+            # (p - y) * x[i] is the current gradient
+            # note that in our case, if i in x then x[i] = 1
+            alpha = self.alpha
+            learningRate  =  alpha / (sqrt(n[i]) + 1.)
+            w[i] -= (p - y) * learningRate 
+            n[i] += 1.
 
-# initialize our model
-w = [0.] * D  # weights
-n = [0.] * D  # number of times we've encountered a feature
+        return w, n
 
-# start training a logistic regression model using on pass sgd
-loss = 0.
-labelDict = {}
-reverseDict = {}
-labelCounter = 0
-for t, row in enumerate(open(train)):
-    lab, txt = row.split("\t")
-    if lab in labelDict:
-        y = labelDict[lab]
-    else:
-        y = labelDict[lab] = labelCounter
-        reverseDict[labelCounter] = lab
-        labelCounter += 1
 
-    # main training procedure
-    # step 1, get the hashed features
-    x = get_x(txt, D)
+    def fit(self, train, nIter = 50):
+        D = self.D
+        # initialize our model
+        w = [0.] * D  # weights
+        n = [0.] * D  # number of times we've encountered a feature
 
-    # step 2, get prediction
-    p = get_p(x, w)
+        # start training a logistic regression model using on pass sgd
+        loss = 0.
+        
+        labelCounter = 0
+        total = 0
+        for j in range(nIter):
+            for t, row in enumerate(open(train)):
+                lab, txt = row.split("\t")
+                if lab in self.labelDict:
+                    y = self.labelDict[lab]
+                else:
+                    y = self.labelDict[lab] = labelCounter
+                    self.reverseDict[labelCounter] = lab
+                    labelCounter += 1
+                # main training procedure
+                # step 1, get the hashed features
+                x = self.get_x(txt, D)
+                # step 2, get prediction
+                p = self.get_p(x, w)
+                # for progress validation, useless for learning our model
+                loss += self.logloss(p, y)
+                if t % 8000 == 0 and t > 1:
+                    print('%s\tencountered: %d\tcurrent logloss: %f\titeration %d' % (
+                        datetime.now(), t, loss/total, j))
 
-    # for progress validation, useless for learning our model
-    loss += logloss(p, y)
-    if t % 1000000 == 0 and t > 1:
-        print('%s\tencountered: %d\tcurrent logloss: %f' % (
-            datetime.now(), t, loss/t))
+                # step 3, update model with answer
+                w, n = self.update_w(w, n, x, p, y)
+                total += 1
+        self.w = w
 
-    # step 3, update model with answer
-    w, n = update_w(w, n, x, p, y)
+    def predict_proba(self, test_fn):
+        correct = 0
+        all_ps = []
+        w = self.w
+        D = self.D
+        for t,line in enumerate(open(test_fn)):
+            
+            #txt = line  #should only be one  line anyway
+            x = self.get_x(line, D)
+            p = self.get_p(x, w)
+            all_ps += [p]
+        return all_ps
 
-# testing (build kaggle's submission file)
-with open('movie_predict.csv', 'w') as submission:
-    submission.write('Id,Predicted\n')
-    for t,line in enumerate(open(test)):
-        #txt = line  #should only be one  line anyway
-        x = get_x(txt, D)
-        p = get_p(x, w)
-        predicted_label = reverseDict[int(p > .5)]
-        submission.write('%f\n, %s' % (p, predicted_label))
+    def predict(self, test_fn):
+        self.probs = self.predict_proba(test_fn)
+        predicted_labels = []
+        for p in self.probs:
+            predicted_labels += [self.reverseDict[int(p > .5)]]
+
+        return predicted_labels 
+
+    def write_output(self, outfile, labels):
+        correct = 0
+        with open(outfile, 'w') as submission, open('movie_test_labels.tsv', 'r') as f:
+            for i, predicted_label in enumerate(labels):
+                p = self.probs[i]
+                trueLabel = f.readline().rstrip("\n")
+                if predicted_label == trueLabel:
+                    correct += 1
+                toWrite = "{0:.2f}, {1}\n".format(p, predicted_label)
+                submission.write(toWrite)
+        print "Final Score: {0}".format(correct*1./ (i+1))
+
+if __name__ == "__main__":
+    sgd = SGDClassifier()
+    sgd.fit('movie_train.tsv')
+    predicted = sgd.predict('movie_test.tsv')
+    sgd.write_output('my_output.csv', predicted)
+    #print t
+    

@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+
+{% block body %}
+  <h2>Model Training</h2>
+   <h3> Select Your Dataset </h3>
+
+
+  <form action ="{{ url_for('process_data') }}"  method="GET" id="data" name=data>
+  <ul>
+    {%if data|length < 1 %}
+      <h3> No data has been uploaded </h3>
+    {% else %}
+        <li><select form = "data" id = "dataFile" name = "dataFile">
+        {% for fn in data %}
+          <option>{{ fn }}</option> 
+        {% endfor %}
+        </select>
+    {% endif %}
+  
+  <li><input type = "submit" value = "Preprocess Data" id = "subButton"> 
+  </ul>
+
+  </form>
+
+  
+
+  
+
+
+{% endblock %}

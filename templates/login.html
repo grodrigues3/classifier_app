@@ -11,4 +11,11 @@
       <dd><input type=submit value=Login>
     </dl>
   </form>
+
+  <script type="text/javascript">
+    //no need for a login button on this page
+    var el = document.getElementById('loginButton');
+    el.parentNode.removeChild(el);
+
+  </script>
 {% endblock %}

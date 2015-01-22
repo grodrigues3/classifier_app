@@ -5,20 +5,31 @@
 {% block body %}
     {% if session.logged_in %}
 
-    {% for myResult in results %}
-        <h3> Lambda: {{myResult[2]}}  </h3>
+    <h3> Training Results:  </h3>
+    {% for result in results %}
+
+        
           <ul class=results>
-                <li> Training Accuracy: {{ myResult[0] }}
-                <li> Validation Accuracy: {{myResult[1]}}
+                <li><h4>{{ D }} Features </h4>
+                <li> Training Accuracy: {{ result[0] }}
+                <li> Validation Accuracy: {{result[1]}}
+                <li> Training Loss: {{result[2]}}
           </ul>
 
     {% endfor %}
 
+
+
+
+
       <form action="" method=post class=add-entry enctype=multipart/form-data>
       <dl>
         <dt> Would you like to test your model?
-        <dd><input type=file name=file>
-        <dd><input type=submit value=Upload Dataset>
+        <dd><input type=file name="test_file">
+        <dt> Optional (test labels)?
+        <dd><input type=file name="test_labels">
+        <dd><input type=hidden value = {{D}} name="dim">
+        <dd><input type=submit value=Test Dataset>
       </dl>
     </form>
 
