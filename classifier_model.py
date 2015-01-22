@@ -1,19 +1,37 @@
 from my_trainer.Preprocessor import Preprocessor
 from my_trainer.Logistic_Regression import Logistic_Regression as LR
+from my_trainer.SGDClassifier import SGDClassifier as SGD
 import numpy as np
+import time
 
 class Classifier_Model:
     def __init__(self, modelType = 'LR'):
-        models = {'LR': LR, 'SGD': 'ToDo', 'NB': 'Too be implemented', 'NN': 'ToDo'}
-        self.modelType = models[modelType] #still need to instantiate in fit
+        self.modelType = None
         self.myPreprocessor = Preprocessor()
+        self.myMod = None
 
-    def getData(self, fn, myDelimiter = ",", test=False):
-        dataMat, labels =  self.myPreprocessor.buildMatrix(fn, D = 500, delimiter = myDelimiter, test = test)
+
+    def getData(self, fn, myDelimiter = None, numFeats = None, test=False, rep='Hashing Trick'):
+        dataMat, labels =  self.myPreprocessor.buildMatrix(fn, D = numFeats, test = test)
         if labels == []:
             return dataMat
         dataLabels = self.myPreprocessor.convertLabels(labels)
         return dataMat, dataLabels
+
+
+
+    def getBaseRates(self, fn, delimiter = ","):
+        return self.myPreprocessor.getBaseRates(fn, delimiter)
+
+    
+    def fit_sgd(self, fn, D = None, nIters=None, val=False):
+        if D == None:
+            D == 2**20
+        if nIters == None:
+            nIters = 60
+        self.myMod = SGD(D=D)
+        return self.myMod.fit(fn, nIter= nIters, validation =val) #trainScore, valScore, trainLoss
+
 
 
     def train_test_split(self, dataMat, labels, train_size = .7):
@@ -32,12 +50,13 @@ class Classifier_Model:
         return X_train, y_train, X_test, y_test
 
 
-    def perform_CV(self, dataMat, labels, regValues, t_size=.7):
+    def perform_CV(self, modelType, dataMat, labels, regValues, t_size=.7):
+        start = time.time()
         X_train, y_train, X_test, y_test = self.train_test_split(dataMat, labels, train_size = t_size)
         trainRes, valRes, lambVals = [], [], []
         bestSoFar = 10**-50
         for regParam in regValues:
-            theMod = self.modelType()#instantiate the model
+            theMod = LR()#instantiate the model
             theMod.fit(X_train, y_train, lamb = regParam) 
             lambVals += [regParam]
             trainRes += ["{0:.3f}".format(theMod.score(X_train,y_train))]
@@ -46,6 +65,9 @@ class Classifier_Model:
                 bestSoFar = valScore
                 self.myMod = theMod
             valRes += ["{0:.3f}".format(valScore)]
+            print "finished training the model for lambda = ", regParam
+            print time.time() - start, "elapsed time"
+        print time.time() - start, "total time"
         return zip(trainRes, valRes, lambVals)            
 
 
@@ -54,8 +76,10 @@ class Classifier_Model:
     def score(self, X_test, y_test):
         return self.myMod.score(X_test, y_test)
 
-    def predict(self, X_test):
-        return self.myMod.predict(X_test)
+    def predict(self, X_test, test=False):
+        if test:
+            fn = self.myMod.get_path(X_test, True)
+        return self.myMod.predict(fn)
 
     def convertBack(self, labels):
         return self.myPreprocessor.convertEncoding(labels)
