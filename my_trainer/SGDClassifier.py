@@ -4,6 +4,7 @@ from math import exp, log, sqrt
 from string import maketrans, punctuation
 from random import random
 from os import remove
+import pdb
 
 # parameters #################################################################
 
@@ -18,7 +19,7 @@ class SGDClassifier:
         self.w = None
 
         self.D = D  # number of weights use for learning
-        self.alpha = 10    # learning rate for sgd optimization
+        self.alpha = alpha    # learning rate for sgd optimization
 
     # Bounded logloss
     # INPUT:
@@ -85,8 +86,7 @@ class SGDClassifier:
 
 
     def create_split(self, in_file, t_size = .8):
-        import os
-        print os.getcwd()
+
         fn = in_file.rsplit('.', 1)[0].lower()
         ext = in_file.rsplit('.', 1)[1].lower()
         trainFn = self._get_path(fn+"_train." + ext)
@@ -100,6 +100,14 @@ class SGDClassifier:
 
         return trainFn, valFn
 
+
+    def get_delimiter(self, in_file):
+        fn = in_file.rsplit('.', 1)[0].lower()
+        ext = in_file.rsplit('.', 1)[1].lower()
+        delimiter = ","
+        if ext == "tsv":
+            delimiter = "\t"
+        return delimiter
 
 
     #appends the training or file directory to the path
@@ -119,23 +127,27 @@ class SGDClassifier:
     # OUTPUT:
     #     w: updated model
     #     n: updated count
-    def fit(self, training_file, nIter = 400, validation = True, **kwargs):
+    def fit(self, in_file, nIter = 400, **kwargs):
         D = self.D
         # initialize our model
         w = [0.] * D  # weights
         n = [0.] * D  # number of times we've encountered a feature
 
+        delimiter = self.get_delimiter(in_file)
+
 
         # start training a logistic regression model using on pass sgd
         loss = 0.
-        if validation:
-            training_file, validation_file = self.create_split(training_file, .9)
+        
+        
 
         labelCounter = 0
         total = 0
+        training_file, validation_file = self.create_split(in_file, .95)
         for j in range(nIter):
+            #split into a new validation test set at every epoch
             for t, row in enumerate(open(training_file)):
-                lab, txt = row.split("\t")
+                lab, txt = row.split(delimiter)
                 if lab in self.labelDict:
                     y = self.labelDict[lab]
                 else:
@@ -151,50 +163,57 @@ class SGDClassifier:
                 loss += self.logloss(p, y)
                 w, n = self.update_w(w, n, x, p, y)
                 total += 1
-            print('%s\tencountered: %d\tcurrent logloss: %f\titeration %d' % (
-                    datetime.now(), total, loss/total, j))
-            #pdb.set_trace()
-            if validation:
-                self.w = w
-                print "Validation Score:", self.score(validation_file)
-
-        print t, "Training Examples Used"
-        self.w = w
+            self.w = w
+            print('%s\tencountered: %d\tcurrent logloss: %f\titeration %d \t Validation Score: %f' % (
+                    datetime.now(), total, loss/total, j, self.score(validation_file)))
+        
+        print t, "training examples used"
 
         trainScore = self.score(training_file)
-        if validation:
-            valScore = self.score(validation_file)
+        
+        valScore = self.score(validation_file)  
             
-            try:
-                #remove the files
-                remove(validation_file) 
-                remove(training_file)
-            except:
-                print validation_file
-                print training_file
-        else:
-            valScore = "No Validation Performed"
+        try:
+            #remove the files
+            remove(validation_file) 
+            remove(training_file)
+        except:
+            print validation_file
+            print training_file
+
+     
         trainLoss = loss/total
 
         return trainScore, valScore, trainLoss
 
     def score(self, in_file):
+        """
+        in_file: input file with the format <label> <delimiter> <txt>
+        """
+
         predicted_labels = self.predict(in_file)
         correct = 0
+        delimiter = self.get_delimiter(in_file)
+
         for i, line in enumerate(open(in_file)):
-            trueLabel = line.split("\t")[0]
+            trueLabel = line.split(delimiter)[0]
             if predicted_labels[i] == trueLabel:
                 correct += 1
         return correct *1./ (i+1)
 
 
-    def predict_proba(self, test_fn):
+    def predict_proba(self, in_file):
+        """
+        in_file: input file with the format <label> <delimiter> <txt>
+        """
         correct = 0
         all_ps = []
         w = self.w
         D = self.D
-        for t,line in enumerate(open(test_fn)):
-            check = line.split("\t")
+
+        delimiter = self.get_delimiter(in_file)
+        for t,line in enumerate(open(in_file)):
+            check = line.split(delimiter)
             if len(check) == 1:
                 #txt = line  #should only be one  line anyway
                 x = self.get_x(check[0], D)

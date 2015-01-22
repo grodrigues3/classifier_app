@@ -12,10 +12,10 @@ ALLOWED_EXTENSIONS = set(['csv', 'tsv', 'png', 'txt', 'jpg'])
 UPLOAD_TRAIN_FOLDER = './data/train/'
 UPLOAD_TEST_FOLDER = './data/test/'
 DATABASE = "./flaskr.db"
-DEBUG = False #change this to True for development  
+DEBUG = True #change this to True for development  
 SECRET_KEY = 'development key'
-USERNAME = 'garrett'
-PASSWORD = 'default'
+USERNAME = 'metamind'
+PASSWORD = 'metamind'
 
 #create the application
 app = Flask(__name__)
@@ -23,17 +23,18 @@ app = Flask(__name__)
 #Loads the above configuration settings based on the config params set above
 app.config.from_object(__name__)
 
-@app.route('/', methods = ["GET", "POST"])
-def upload_training():
+@app.route('/<error>/', methods = ["GET", "POST"])
+def upload_training(error = None):
+    print request.method
     if request.method == "GET":
         if 'logged_in' in session and session['logged_in']:
-            return render_template('upload_training.html')
+            return render_template('upload_training.html', error = error)
         else:
             return redirect(url_for('login'))
     elif request.method == 'POST':
+        #upload the test file
         file = request.files['file']
         if file and allowed_file(file.filename):
-            print 'file is allowed'
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_TRAIN_FOLDER'], filename))
             return redirect(url_for('select_training'))
@@ -76,10 +77,10 @@ from flask import send_from_directory
 
 
 @app.route('/select_page/', methods = ["GET"])
-def select_training():
+def select_training(error = None):
     flash('Data was successfully uploaded. Select your dataset and choose a model')
     dataFiles = os.listdir(app.config["UPLOAD_TRAIN_FOLDER"]) 
-    return render_template('select_page.html', data = dataFiles)
+    return render_template('select_page.html', data = dataFiles, error = error)
 
 
 @app.route('/process_data/', methods = ["GET", "POST"])
@@ -93,7 +94,14 @@ def process_data():
         if fileExt == "tsv":
             delimiter = "\t"
         modelList = ["SGD_Classifier"]
-        baseRates, totalDocs, uniqueWords = cm.getBaseRates(filename, delimiter) 
+        try:
+            baseRates, totalDocs, uniqueWords = cm.getBaseRates(filename, delimiter) 
+        except IndexError:
+            error = "The file you upload is not correctly comma or tab separated. " + \
+                     "It should be in the format <label> <delimiter> <text>"
+            return redirect(url_for('upload_training', error = error))
+            """BAD FILE NEED TO HANDLE THIS"""
+            
         return render_template("after_processing.html", filename = filename, baseRates = baseRates, totalDocs = totalDocs, uniqueWords = uniqueWords, models = modelList)
     
 
@@ -105,38 +113,19 @@ def train_model():
         model = request.args['model']
         representation = request.args['representation']
         numFeats = request.args['numFeatures']
-        validate = request.args['val']
         nIters = request.args['nIters']
+        uniqueWords = request.args['uniqueWords']
 
-        try:
-            numFeats = int(numFeats)
-        except:
-            numFeats = int(request.args['uniqueWords'])*2
-
-        
-        if validate == "Validation On":
-            val = True
-        else:
-            val = False
-        
-        try:
-            nIters = int(nIters)
-        except:
-            nIters = None
-
-        print "Training the model..."
         res = []
-        res += [cm.fit_sgd(filename, numFeats, nIters, val)]
+        res += [cm.fit_sgd(filename, numFeats, nIters, uniqueWords)]
         return render_template("after_training.html", results = res, D = numFeats)
 
     elif request.method == "POST":
         file = request.files['test_file']
         dimensionality = int(request.form['dim'])
         if file and allowed_file(file.filename):
-            print 'file is allowed'
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_TEST_FOLDER'], filename))
-            print "going to upload the test file"
             print filename, dimensionality
             return redirect(url_for('test_model', test_fn=filename, D= dimensionality) )
         flash("You're file could not be uploaded")
@@ -162,7 +151,7 @@ def test_model(test_fn, D):
     # to be downloaded, instead of just printed on the browser
     response.headers["Content-Disposition"] = "attachment; filename="+fn+"_results.csv"
     return response
-    #return render_template('after_testing.html', results = testValues)
+    
 
 
 

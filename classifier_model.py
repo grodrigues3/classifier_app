@@ -24,13 +24,23 @@ class Classifier_Model:
         return self.myPreprocessor.getBaseRates(fn, delimiter)
 
     
-    def fit_sgd(self, fn, D = None, nIters=None, val=False):
-        if D == None:
-            D == 2**20
-        if nIters == None:
-            nIters = 60
+    def fit_sgd(self, fn, D = None, nIters=None, uniqueWords=None):
+        print "Training the model..."
+        try:
+            D = int(D)
+        except:
+            if uniqueWords:
+                D = int(uniqueWords)*10
+            else:
+                D = 2**20
+
+        try:
+            nIters = int(nIters)
+        except:
+            nIters = 100
+
         self.myMod = SGD(D=D)
-        return self.myMod.fit(fn, nIter= nIters, validation =val) #trainScore, valScore, trainLoss
+        return self.myMod.fit(fn, nIter= nIters) #trainScore, valScore, trainLoss
 
 
 

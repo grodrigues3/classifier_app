@@ -2,6 +2,8 @@
 
 
 {% block body %}
+
+{% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
   <h2>Model Training</h2>
    <h3> Select Your Dataset </h3>
 

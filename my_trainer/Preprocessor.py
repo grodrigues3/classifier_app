@@ -102,9 +102,11 @@ class Preprocessor:
     #     w: updated model
     #     n: updated count
     """
-    def getBaseRates(self, fn, delimiter = "\t"):
+    def getBaseRates(self, fn, delimiter = ","):
         BASEDIR = "./data/train/"
-        
+        fileExt = fn.rsplit('.', 1)[1].lower()
+        if fileExt == "tsv":
+            delimiter = "\t"
         with open(BASEDIR + fn) as f:
             baseRates = {}
             totalDocs = 0
