@@ -77,8 +77,8 @@ class Classifier_Model:
         return self.myMod.score(X_test, y_test)
 
     def predict(self, X_test, test=False):
-        if test:
-            fn = self.myMod.get_path(X_test, True)
+        
+        fn = self.myMod._get_path(X_test, test=test)
         return self.myMod.predict(fn)
 
     def convertBack(self, labels):
