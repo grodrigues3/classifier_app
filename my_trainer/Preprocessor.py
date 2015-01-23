@@ -1,5 +1,3 @@
-import pdb
-
 import scipy.sparse as ssp
 import numpy as np
 import scipy as sp
@@ -17,17 +15,21 @@ class Preprocessor:
         self.D = None
         self.baseRates = None
 
-    def buildMatrix(self, fn, test=False, **kwargs):
-
+    def getDelimiter(self, fn):
         fileExt = fn.rsplit('.', 1)[1].lower()
         delimiter = ","
         if fileExt == "tsv":
             delimiter = "\t"
+        return delimiter
+
+    def buildMatrix(self, fn, test=False, **kwargs):
+
 
         BASEDIR = "./data/train/"
         if test:
             BASEDIR = "./data/test/"
         D = 1000
+
         printFreq = None
         for key in kwargs:
             if key == 'D':
@@ -37,7 +39,7 @@ class Preprocessor:
                     if self.D:
                         D = self.D
                     else:
-                        self.getBaseRates(fn, delimiter = delimiter)
+                        self.getBaseRates(fn)
                         D = self.D
                         print D, 'features will be used'
             if key == 'printFreq':
@@ -45,8 +47,9 @@ class Preprocessor:
 
 
         cols = []
-        rows = []
+        rows = [] 
         labels = []
+        delimiter = self.getDelimiter(fn)
         with open(BASEDIR+fn, 'r') as f:
             for row, line in enumerate(f):
                 if test:
@@ -56,8 +59,7 @@ class Preprocessor:
                         lab,txt = line.split(delimiter)
                         labels += [lab]
                     except ValueError:
-                        raise ValueError( "Check the formatting of your file.  Either a tab or comma (,) must separate the label from the document")
-                        #probably should add some redirect here to the the select train page
+                        raise ValueError( "Check the formatting of your file.  Either a tab (\t) or comma (,) must separate the label from the document")
                 for i, word in enumerate(txt.split()):
                     cols += [ hash(word)%D]
                     rows += [row] 
@@ -73,6 +75,9 @@ class Preprocessor:
         """ 
         Convert the string representation of labels to a numpy numeric array.
         This simulataneously populates the class attribute labelDict
+
+        param labels: the English representation of the labels
+        returns numerically encoded labels as a np array
         """
         counter = 0
         numericLabels = []
@@ -93,20 +98,18 @@ class Preprocessor:
             for i in range(encodedLabels.shape[0]):
                 trueLabels += [self.backwards_conversion[encodedLabels[i]]]
         return trueLabels
-    """
-    INPUT:
-    #     self: 
-    #     fn: the name of the file to be used for training
-    #     delimiter: how are the labels separated from the file
-    # OUTPUT:
-    #     w: updated model
-    #     n: updated count
-    """
-    def getBaseRates(self, fn, delimiter = ","):
+    def getBaseRates(self, fn):
+        """
+        INPUT:
+        #     self: 
+        #     fn: the name of the file to be used for training
+        #     delimiter: how are the labels separated from the file
+        # OUTPUT:
+        #     w: updated model
+        #     n: updated count
+        """
         BASEDIR = "./data/train/"
-        fileExt = fn.rsplit('.', 1)[1].lower()
-        if fileExt == "tsv":
-            delimiter = "\t"
+        delimiter = self.getDelimiter(fn)
         with open(BASEDIR + fn) as f:
             baseRates = {}
             totalDocs = 0

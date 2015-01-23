@@ -13,13 +13,14 @@ import pdb
 # function definitions #######################################################
 class SGDClassifier:
 
-    def __init__(self, D= 10**6, alpha = 1):
+    def __init__(self):
         self.labelDict = {}
         self.reverseDict = {}
         self.w = None
 
-        self.D = D  # number of weights use for learning
-        self.alpha = alpha    # learning rate for sgd optimization
+        self.alpha = None
+        self.D = None
+
 
     # Bounded logloss
     # INPUT:
@@ -117,30 +118,27 @@ class SGDClassifier:
             BASEDIR = "./data/test/"
         return BASEDIR + fn
 
-
-     # D. Update given model
-    # INPUT:
-    #     self: 
-    #     train: the name of hte file to be used for training
-    #     nIter: how many iterations to complete
-    #     validation: bool - divide the training set in to train/val sets
-    # OUTPUT:
-    #     w: updated model
-    #     n: updated count
-    def fit(self, in_file, nIter = 400, **kwargs):
-        D = self.D
+    def fit(self, in_file, D, nIter = 100, alpha = .1, **kwargs):
+        """
+        INPUT:
+            self: 
+             train: the name of hte file to be used for training
+             nIter: how many iterations to complete
+             validation: bool - divide the training set in to train/val sets
+        OUTPUT:
+            toReturn: a dictionary of values containing 
+            {'Validation Score': valScore, 'Training Score': trainScore, 'Training Loss': trainLoss, 'Number of Features': D}
+        """
+        self.alpha = alpha
+        self.D = D
         # initialize our model
         w = [0.] * D  # weights
         n = [0.] * D  # number of times we've encountered a feature
 
         delimiter = self.get_delimiter(in_file)
 
-
         # start training a logistic regression model using on pass sgd
         loss = 0.
-        
-        
-
         labelCounter = 0
         total = 0
         training_file, validation_file = self.create_split(in_file, .95)
@@ -180,11 +178,11 @@ class SGDClassifier:
         except:
             print validation_file
             print training_file
-
      
         trainLoss = loss/total
-
-        return trainScore, valScore, trainLoss
+        toReturn = {'Validation Score': valScore, 'Training Score': trainScore, 
+                'D': D, 'Training Loss': trainLoss}
+        return toReturn
 
     def score(self, in_file):
         """

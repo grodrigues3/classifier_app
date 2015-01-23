@@ -2,7 +2,7 @@ import sqlite3, os
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, make_response, send_from_directory
 from contextlib import closing
 from werkzeug import secure_filename
-from classifier_model import Classifier_Model 
+import classifier_model_1 as cm 
 import numpy as np
 import pdb
 
@@ -79,14 +79,9 @@ def select_training(error = None):
 @app.route('/process_data/', methods = ["GET", "POST"])
 def process_data():
     if request.method == "GET":
+        #Get the params from the request
         filename = request.args['dataFile']
-        fileExt = filename.rsplit('.', 1)[1].lower()
-        delimiter = ","
-        global cm
-        cm = Classifier_Model()
-        if fileExt == "tsv":
-            delimiter = "\t"
-        modelList = ["SGD_Classifier"]
+        modelList = ["SGD_Classifier"] #should read this from a configuration file
         try:
             baseRates, totalDocs, uniqueWords = cm.getBaseRates(filename)
         except IndexError:

@@ -29,13 +29,12 @@ class Logistic_Regression(Base_Classifier):
           costF = lambda th: self.costFunctionReg(th,X,y,lamb, weights)
           gradF = lambda th: self.costGrad(th,X,y,lamb, weights)
           results = op.minimize( fun = costF, x0 = theta_0, method= 'L-BFGS-B', jac = gradF) #, maxiter = 10, full_output =2, disp=True)
-          
           #results = op.fmin_ncg( f = costF, x0 = theta_0, fprime = gradF, maxiter = 10, full_output =2, disp=True)
           #results = op.fmin_bfgs(costF, theta_0, fprime = gradF, maxiter = 400, full_output =1 )
           #best_theta = results[0]
           #best_cost = results[1]
-          best_theta = results['x']
-          best_cost = results['fun']
+          #best_theta = results['x']
+          #best_cost = results['fun']
           #pdb.set_trace()
           self.best_theta = np.array([best_theta])
           return [best_theta, best_cost]

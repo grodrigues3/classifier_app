@@ -30,34 +30,30 @@
     </table>
     </ul>
     <h2> Configure Training </h2>
+
     <form action="{{ url_for('train_model') }}" id="modelAndRep" method="GET" class=add-entry>
-    <ul id="formInputs">
-        <input type=hidden value="{{filename}}" name="filename" form = modelAndRep>
-        <input type=hidden value="{{uniqueWords}}" name="uniqueWords" form = modelAndRep>
+        <ul id="formInputs">
+            <input type=hidden value="{{filename}}" name="filename" form = modelAndRep>
+            <input type=hidden value="{{uniqueWords}}" name="uniqueWords" form = modelAndRep>
 
-        {% if models|length < 1 %}
-              <h3> No models are available </h3>
-        {% else %}
-            <h4> Model Selection </h4>
-            <p>Choose your model</p>
-            <li><select form="modelAndRep" name="model" id="modSelect" onchange = "displayOptions()">
+            {% if models|length < 1 %}
+                  <h3> No models are available </h3>
+            {% else %}
+                <h4> Model Selection </h4>
+                <p>Choose your model</p>
+                <li><select form="modelAndRep" name="model" id="modSelect" onchange = "displayOptions()">
+                    {% for mod in models %}
+                        <option>{{ mod }}</option> 
+                    {% endfor %}
+                    </select>
 
-            {% for mod in models %}
-                <option>{{ mod }}</option> 
-            {% endfor %}
-
-
-            </select>
-
-        {% endif %}
+            {% endif %}
 
           <div id = "moreOptions" > </div>
 
+          <li><input type = "submit" value = "Train Model" id = "subButton"> 
 
-        
-      <li><input type = "submit" value = "Train Model" id = "subButton"> 
-
-      </ul>
+          </ul>
     </form>
 
   {% endif %}

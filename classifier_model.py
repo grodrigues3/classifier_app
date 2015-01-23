@@ -10,8 +10,15 @@ class Classifier_Model:
         self.myPreprocessor = Preprocessor()
         self.myMod = None
 
-
-    def getData(self, fn, myDelimiter = None, numFeats = None, test=False, rep='Hashing Trick'):
+    
+    def getData(self, fn, numFeats = None, test=False, rep='Hashing Trick'):
+        """
+        param fn: the filename containing the training data
+        param numFeats: how many features to include when building the matrix
+        param test: boolean indicating if there is a label or not
+        return dataMat: scipy sparse matrix (csr) with the number of rows equal to the number of lines in fn and the number of columns equal to numFeats
+        return dataLabels: numerically encoded dataLabels
+        """
         dataMat, labels =  self.myPreprocessor.buildMatrix(fn, D = numFeats, test = test)
         if labels == []:
             return dataMat
@@ -19,28 +26,52 @@ class Classifier_Model:
         return dataMat, dataLabels
 
 
-
-    def getBaseRates(self, fn, delimiter = ","):
-        return self.myPreprocessor.getBaseRates(fn, delimiter)
-
     
-    def fit_sgd(self, fn, D = None, nIters=None, uniqueWords=None):
+    def getBaseRates(self, fn):
+        """
+        @param fn: the input file
+        """
+        return self.myPreprocessor.getBaseRates(fn)
+
+   
+
+    def fit(self, modelType, **params):
+        """
+        @return results: return list of dictionaries of values
+            e.g: [ {'Training Error': .95, 'Validation Error': .92, 'Number of Features': 10**6}]
+        """
+        if modelType == "Logistic Regression":
+            pass
+        elif modelType == "SGDClassifier":
+            pass
+        elif modelType == "Neural Network":
+            pass
+        elif modelType == "Naive Bayes":
+            pass
+        
+
+    def fit_sgd(self, fn, dList = None, nIters=None, uniqueWords=None):
+        """
+        @return results: return list of dictionaries of values
+            e.g: [ {'Training Error': .95, 'Validation Error': .92, 'Number of Features': 10**6}]
+        """
         print "Training the model..."
         try:
-            D = int(D)
+            dList = [int(x) for x in dList.split(",")]
         except:
             if uniqueWords:
-                D = int(uniqueWords)*5
+                dList = [int(uniqueWords)*5]
             else:
-                D = 2**20
-
+                dList = [2**20]
         try:
             nIters = int(nIters)
         except:
             nIters = 100
-
-        self.myMod = SGD(D=D)
-        return self.myMod.fit(fn, nIter= nIters) #trainScore, valScore, trainLoss
+        res = []
+        for numFeatures in dList:
+            self.myMod = SGD()
+            res += [self.myMod.fit(fn, numFeatures, nIter= nIters)] #trainScore, valScore, trainLoss
+        return res
 
 
 

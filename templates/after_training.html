@@ -9,13 +9,11 @@
     {% for result in results %}
 
         
-          <ul class=results>
-                <li><h4>{{ D }} Features </h4>
-                <li> Training Accuracy: {{ result[0] }}
-                <li> Validation Accuracy: {{result[1]}}
-                <li> Training Loss: {{result[2]}}
-          </ul>
-
+            <ul class=results>
+                  {% for key, value in result.iteritems() %}
+                        <li>{{key}} : {{value}} </td>
+               {% endfor %}
+            </ul> 
     {% endfor %}
 
 
