@@ -34,10 +34,7 @@
     <ul id="formInputs">
         <input type=hidden value="{{filename}}" name="filename" form = modelAndRep>
         <input type=hidden value="{{uniqueWords}}" name="uniqueWords" form = modelAndRep>
-        <!--
-        <p> Enter a comma separated list of values for the regularization term (grid-search) </p> 
-        <input type=text value="1,10,100" name="regRange" form = modelAndRep> <br> <br>
-        //-->
+
         {% if models|length < 1 %}
               <h3> No models are available </h3>
         {% else %}
@@ -84,8 +81,7 @@
             var nIters=document.createElement('input');
             var nItersDesc = document.createElement('p');
             nItersDesc.id = 'iterDescriptor'
-            nItersDesc.innerHTML = "Enter the number of iterations for SGD.  Leave blank for default"
-            
+            nItersDesc.innerHTML = "Enter the number of iterations for SGD.  Leave blank for default 100 iterations.  100 iterations takes less than a minute usually"
             nIters.id = 'nIters';
             nIters.setAttribute('type', 'text');
             nIters.setAttribute('form', 'modelAndRep');

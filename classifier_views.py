@@ -23,7 +23,7 @@ app = Flask(__name__)
 #Loads the above configuration settings based on the config params set above
 app.config.from_object(__name__)
 
-@app.route('/<error>/', methods = ["GET", "POST"])
+@app.route('/', methods = ["GET", "POST"])
 def upload_training(error = None):
     print request.method
     if request.method == "GET":
@@ -116,6 +116,14 @@ def train_model():
         nIters = request.args['nIters']
         uniqueWords = request.args['uniqueWords']
 
+        try:
+            numFeats = int(numFeats)
+        except:
+            if uniqueWords != "":
+                numFeats = int(uniqueWords)*10
+            else:
+                numFeats = 2**20
+
         res = []
         res += [cm.fit_sgd(filename, numFeats, nIters, uniqueWords)]
         return render_template("after_training.html", results = res, D = numFeats)
@@ -126,7 +134,6 @@ def train_model():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_TEST_FOLDER'], filename))
-            print filename, dimensionality
             return redirect(url_for('test_model', test_fn=filename, D= dimensionality) )
         flash("You're file could not be uploaded")
         return redirect(url_for('process_data'))
@@ -134,15 +141,13 @@ def train_model():
         
 
 @app.route('/inference/<test_fn>/<D>/', methods= ["GET","POST"])
-def test_model(test_fn, D):
+def test_model(test_fn, D, score = None):
     fn = test_fn.rsplit('.', 1)[0].lower()
     fileExt = test_fn.rsplit('.', 1)[1].lower()
     delimiter = ","
     if fileExt == "tsv":
         delimiter = "\t"
-    #testData = cm.getData(test_fn, myDelimiter = delimiter, numFeats=D, test=True)
     testValues = cm.predict(test_fn, True)
-    #testValues = cm.convertBack(testValues)
     respText = ""
     for val in testValues:
         respText += val + "\n"

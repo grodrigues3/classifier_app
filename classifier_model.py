@@ -30,7 +30,7 @@ class Classifier_Model:
             D = int(D)
         except:
             if uniqueWords:
-                D = int(uniqueWords)*10
+                D = int(uniqueWords)*5
             else:
                 D = 2**20
 
