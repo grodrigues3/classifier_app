@@ -60,9 +60,10 @@
 
 
   <script type='text/javascript'>
-    function displayOptions(){
 
-        if( document.getElementById('modSelect').value == "SGD_Classifier"){
+
+    function displayRepresentationChoice(){
+            //generate the LR results
             var representationSelect=document.createElement('select');
             representationSelect.id = 'rep';
             representationSelect.setAttribute('onchange', 'maxFeats()');
@@ -71,19 +72,9 @@
 
             
             var repDesc = document.createElement('p');
-            repDesc.id = 'iterDescriptor'
             repDesc.innerHTML = "Choose the representation for the data"
-
-            var nIters=document.createElement('input');
-            var nItersDesc = document.createElement('p');
-            nItersDesc.id = 'iterDescriptor'
-            nItersDesc.innerHTML = "Enter the number of iterations for SGD.  Leave blank for default 100 iterations.  100 iterations takes less than a minute usually"
-            nIters.id = 'nIters';
-            nIters.setAttribute('type', 'text');
-            nIters.setAttribute('form', 'modelAndRep');
-            nIters.setAttribute('name', 'nIters');
-
-            var opt = document.createElement("option");
+            
+                var opt = document.createElement("option");
             opt.innerHTML = "Hashing Trick"; // whatever property it has
             representationSelect.appendChild(opt);
 
@@ -93,15 +84,44 @@
             document.getElementById('moreOptions').appendChild(representationSelect);
             document.getElementById('moreOptions').insertBefore(repDesc, representationSelect);
 
+    }
+    function displayOptions(){
+        modelType = document.getElementById('modSelect').value 
+
+        //delete the old options
+        var optionsArea = document.getElementById('moreOptions')
+        while(optionsArea.firstChild){
+            optionsArea.removeChild(optionsArea.firstChild);
+        }
+
+
+        //generate new ones
+        if( modelType== "SGD_Classifier"){
+            displayRepresentationChoice()
+            var nIters=document.createElement('input');
+            var nItersDesc = document.createElement('p');
+            nItersDesc.id = 'iterDescriptor'
+            nItersDesc.innerHTML = "Enter the number of iterations for SGD.  Leave blank for default 100 iterations.  100 iterations takes less than a minute usually"
+            nIters.id = 'nIters';
+            nIters.setAttribute('type', 'text');
+            nIters.setAttribute('form', 'modelAndRep');
+            nIters.setAttribute('name', 'nIters');
+
             document.getElementById('moreOptions').appendChild(nIters);
             document.getElementById('moreOptions').insertBefore(nItersDesc, nIters);
-        }else{
-            var el = document.getElementById('rep');
-            el.parentNode.removeChild(el);
-            var el = document.getElementById('description');
-            el.parentNode.removeChild(el);
-            var el = document.getElementById('maxFeat');
-            el.parentNode.removeChild(el);
+        }else if(modelType == "Logistic Regression"){
+            displayRepresentationChoice()
+            var regChoice=document.createElement('input');
+            var regChoiceDesc = document.createElement('p');
+            regChoiceDesc.id = 'regDesc'
+            regChoiceDesc.innerHTML = "Choose some parameter values for regularization (comma separated).  Leave blank for default"
+            regChoice.id = 'regChoice';
+            regChoice.setAttribute('type', 'text');
+            regChoice.setAttribute('form', 'modelAndRep');
+            regChoice.setAttribute('name', 'regValues');
+
+            document.getElementById('moreOptions').appendChild(regChoice);
+            document.getElementById('moreOptions').insertBefore(regChoiceDesc, regChoice);
         }
         maxFeats();
     }
@@ -120,8 +140,6 @@
             desc.id = 'description'
             desc.innerHTML = "Enter the number of features to be used during the hashing trick. Leave blank to let the algorithm decide."
             document.getElementById('moreOptions').insertBefore(desc, maxFeatSelect);
-
-
         }
     }
 

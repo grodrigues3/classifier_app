@@ -1,7 +1,7 @@
 import scipy.sparse as ssp
 import numpy as np
 import scipy as sp
-
+import pdb
 
 
 class Preprocessor:
@@ -44,7 +44,6 @@ class Preprocessor:
                         print D, 'features will be used'
             if key == 'printFreq':
                 printFreq = kwargs[key]
-
 
         cols = []
         rows = [] 
