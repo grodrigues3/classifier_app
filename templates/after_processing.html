@@ -70,11 +70,10 @@
             representationSelect.setAttribute('form', 'modelAndRep');
             representationSelect.setAttribute('name', 'representation');
 
-            
             var repDesc = document.createElement('p');
             repDesc.innerHTML = "Choose the representation for the data"
             
-                var opt = document.createElement("option");
+            var opt = document.createElement("option");
             opt.innerHTML = "Hashing Trick"; // whatever property it has
             representationSelect.appendChild(opt);
 
@@ -109,7 +108,8 @@
 
             document.getElementById('moreOptions').appendChild(nIters);
             document.getElementById('moreOptions').insertBefore(nItersDesc, nIters);
-        }else if(modelType == "Logistic Regression"){
+
+        }else if(modelType == "Logistic Regression" || modelType == "Garrett's Logistic Regression"){
             displayRepresentationChoice()
             var regChoice=document.createElement('input');
             var regChoiceDesc = document.createElement('p');

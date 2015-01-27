@@ -31,7 +31,6 @@ app.config.from_object(__name__)
 
 @app.route('/', methods = ["GET", "POST"])
 def upload_training(error = None):
-    print request
     if request.method == "GET":
         if 'logged_in' in session and session['logged_in']:
             return CV.show_upload_page(error) 
@@ -89,7 +88,7 @@ def process_data():
     if request.method == "GET":
         #Get the params from the request
         filename = request.args['dataFile']
-        modelList = ["SGD_Classifier", "Logistic Regression"] #should read this from a configuration file
+        modelList = ["SGD_Classifier", "Logistic Regression", "Garrett's Logistic Regression"] #should read this from a configuration file
         try:
             baseRates, totalDocs, uniqueWords = CM.getBaseRates(filename)
         except IndexError:
@@ -136,10 +135,10 @@ def test_model(test_fn, D, score = None):
     delimiter = ","
     if fileExt == "tsv":
         delimiter = "\t"
-    testValues = CM.predict(test_fn, True)
+    testValues = CM.predict(test_fn, D, True)
     respText = ""
     for val in testValues:
-        respText += val + "\n"
+        respText += str(val) + "\n"
     response = make_response(respText)
     # This is the key: Set the right header for the response
     # to be downloaded, instead of just printed on the browser

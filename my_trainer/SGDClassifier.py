@@ -222,7 +222,11 @@ class SGDClassifier:
         return all_ps
 
     def predict(self, test_fn):
-        self.probs = self.predict_proba(test_fn)
+        try:
+            self.probs = self.predict_proba(test_fn)
+        except IOError:
+            test_fn = self._get_path(test_fn)
+            self.probs = self.predict_proba(test_fn)
         predicted_labels = []
         for p in self.probs:
             predicted_labels += [self.reverseDict[int(p > .5)]]

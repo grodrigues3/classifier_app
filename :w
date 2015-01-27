@@ -66,20 +66,11 @@ def fit(modelType, fn, **params):
         if modelType == "Logistic Regression":
             param_grid = {'penalty': pen,  'C': regValues}
             clf = GridSearchCV(LogisticRegression(), param_grid, cv = numFolds)
-        elif modelType == "Garrett's Logistic Regression":
-            toRet = [] 
-            bestScore = 0
+        else:
             for l in regValues:
-                clf = LR()
                 trainingData, trainLab, test, testLab = train_test_split(train, trainLabels)
                 [best_theta, best_cost] = clf.fit(trainingData, trainLab, lamb = l)
-                valScore = clf.score(test, testLab)
-                if valScore > bestScore:
-                    myMod = clf
-                    bestScore = valScore
-                toRet += [ {'Lambda': l, 'Validation Score': valScore, 'Training Score': clf.score(trainingData, trainLab) , 'Training Loss': best_cost}]
-            return D, toRet
-              
+
     elif modelType == "SGD_Classifier":
         try:
             D = int(params['numFeatures'])
@@ -133,7 +124,7 @@ def fit_sgd(fn, numFeatures = None, nIters=None, uniqueWords=None, q=None, **kwa
 
 
 
-def train_test_split(dataMat, labels, train_size = .8):
+def train_test_split(dataMat, labels, train_size = .7):
     """
     For cross validation purposes.  Split the 
     @param dataMat: numpy array, matrix or scipy sparse matrix 
@@ -173,13 +164,9 @@ def fit_logistic(dataMat, labels, regValues, t_size=.7):
 def score(X_test, y_test):
     return myMod.score(X_test, y_test)
 
-def predict(test_fn, D, test=False):
-    try:
-        return myMod.predict(test_fn)
-    except:
-        data = getData(test_fn, numFeats = D, test= True)
-        predicted_vals = myMod.predict(data)#need to get the data first
-        return convertBack(predicted_vals)
+def predict(X_test, test=False):
+    fn = myMod._get_path(X_test, test=test)
+    return myMod.predict(fn)
 
 def convertBack(labels):
     return myPreprocessor.convertEncoding(labels)
