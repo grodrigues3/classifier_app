@@ -71,7 +71,7 @@
             representationSelect.setAttribute('name', 'representation');
 
             var repDesc = document.createElement('p');
-            repDesc.innerHTML = "Choose the representation for the data"
+            repDesc.innerHTML = "Choose the representation for the data";
             
             var opt = document.createElement("option");
             opt.innerHTML = "Hashing Trick"; // whatever property it has
@@ -93,7 +93,6 @@
             optionsArea.removeChild(optionsArea.firstChild);
         }
 
-
         //generate new ones
         if( modelType== "SGD_Classifier"){
             displayRepresentationChoice()
@@ -109,7 +108,7 @@
             document.getElementById('moreOptions').appendChild(nIters);
             document.getElementById('moreOptions').insertBefore(nItersDesc, nIters);
 
-        }else if(modelType == "Logistic Regression" || modelType == "Garrett's Logistic Regression"){
+        }else if(modelType == "Sklearn Logistic Regression" || modelType == "Garrett's Logistic Regression"){
             displayRepresentationChoice()
             var regChoice=document.createElement('input');
             var regChoiceDesc = document.createElement('p');

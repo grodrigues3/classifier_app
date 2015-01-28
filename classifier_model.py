@@ -44,8 +44,10 @@ def fit(modelType, fn, **params):
     e.g: [ {'Training Error': .95, 'Validation Error': .92, 'Number of Features': 10**6}]
     """
     numFolds = 10
-    if modelType == "Logistic Regression" \
+    if modelType == "Sklearn Logistic Regression" \
             or modelType == "Garrett's Logistic Regression":
+
+        #Both Sklearn and my implementation take in essentially the same arguments
         try:
             D = int(params['numFeatures'])
         except:
@@ -63,7 +65,8 @@ def fit(modelType, fn, **params):
         except:
             pen = ['l2']
         train, trainLabels = getData(fn, numFeats = D)
-        if modelType == "Logistic Regression":
+
+        if modelType == "Sklearn Logistic Regression":
             param_grid = {'penalty': pen,  'C': regValues}
             clf = GridSearchCV(LogisticRegression(), param_grid, cv = numFolds)
         elif modelType == "Garrett's Logistic Regression":

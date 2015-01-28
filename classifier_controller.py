@@ -17,6 +17,7 @@ import classifier_view as CV
 ALLOWED_EXTENSIONS = set(['csv', 'tsv', 'png', 'txt', 'jpg'])
 UPLOAD_TRAIN_FOLDER = './data/train/'
 UPLOAD_TEST_FOLDER = './data/test/'
+CONFIGURATION = './configuration/'
 DATABASE = "./flaskr.db"
 DEBUG = True #change this to True for development  
 SECRET_KEY = 'development key'
@@ -88,7 +89,7 @@ def process_data():
     if request.method == "GET":
         #Get the params from the request
         filename = request.args['dataFile']
-        modelList = ["SGD_Classifier", "Logistic Regression", "Garrett's Logistic Regression"] #should read this from a configuration file
+        modelList = [model.strip("\n") for model in open(app.config["CONFIGURATION"] + 'config').readlines()] 
         try:
             baseRates, totalDocs, uniqueWords = CM.getBaseRates(filename)
         except IndexError:
