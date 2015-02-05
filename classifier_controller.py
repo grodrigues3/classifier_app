@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 import sqlite3, os
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, make_response, send_from_directory
 from contextlib import closing
@@ -9,20 +8,21 @@ from multiprocessing import Pool, Process, Pipe, Queue
 import pdb
 from multiprocessing import Manager
 from threading import Thread    
-
-
 import classifier_model as CM
 import classifier_view as CV
+
 #config settings
 ALLOWED_EXTENSIONS = set(['csv', 'tsv', 'png', 'txt', 'jpg'])
 UPLOAD_TRAIN_FOLDER = './data/train/'
 UPLOAD_TEST_FOLDER = './data/test/'
 CONFIGURATION = './configuration/'
 DATABASE = "./flaskr.db"
-DEBUG = True #change this to True for development  
+
+#change this to True for development 
+DEBUG = True 
 SECRET_KEY = 'development key'
-USERNAME = 'metamind'
-PASSWORD = 'metamind'
+USERNAME = 'nervanasys'
+PASSWORD = 'nervanasys'
 
 #create the application
 app = Flask(__name__)
@@ -89,12 +89,17 @@ def process_data():
     if request.method == "GET":
         #Get the params from the request
         filename = request.args['dataFile']
-        modelList = [model.strip("\n") for model in open(app.config["CONFIGURATION"] + 'config').readlines()] 
+        modelList = [model.strip("\n") for model in open(app.config["CONFIGURATION"] + 'available_classification_models').readlines() if model[0] != "#"] 
         try:
             baseRates, totalDocs, uniqueWords = CM.getBaseRates(filename)
         except IndexError:
             error = "The file you upload is not correctly comma or tab separated. It should be in the format <label> <delimiter> <text>"
             return redirect(url_for('upload_training', error = error))
+        if len(baseRates) > 2:
+            try:
+                modelList.remove("Garrett's SGDClassifier") #does not support multiclass yet
+            except:
+                pass
         return CV.show_post_processing(filename, baseRates, totalDocs, uniqueWords, modelList) 
 
 
@@ -102,7 +107,22 @@ def process_results(args):
     app, filename,  numFeats,  nIters,  uniqueWords = args
     with app.app_context():
         res = CM.fit_sgd(filename, numFeats, nIters, uniqueWords)
-        return CV.show_post_training(res)
+        redirect(CV.show_post_training(res, 1000))
+
+
+def fit_data(model, args, queue, myDict):
+    D, trainingResults = CM.fit(model, args, **myDict)
+    queue.put([D,trainingResults])
+    return queue
+
+
+@app.route("/update_page/", methods = ["GET", "PUT"])
+def update_page(queue):
+    print 'the process finished'
+    D, tR = queue.get() 
+    #app = queue.get()
+    with app.app_context():
+        redirect(url_for('process_data'))
 
 @app.route("/train_model/", methods = ["GET", "POST"])
 def train_model():
@@ -112,10 +132,18 @@ def train_model():
         representation = request.args['representation']
         #potential args: representation, numFeatures, regValues, nIters
         otherArgs = {arg:request.args[arg] for arg in request.args}
-        ###Change this to just a fit method that takes in the modeltype too
         numFeatures, res = CM.fit(model, filename, **otherArgs)
         return CV.show_post_training(res, numFeatures)
-    #return "Your data is being processed.  The page will automatically update after"
+        """
+        STILL IN DEVELOPMENT: MAKE THE TRAINING STEP AN ASYNCHRONOUS CALL SO THE SERVER ISN'T TIED UP
+        """
+        #return fit_data(model, filename, otherArgs)
+        #mgr = Manager()
+        #myQueue = mgr.Queue()
+        #myQueue.put(app)
+        #pool = Pool(processes = 2) #, initializer= worker_init, initargs = [sender, receiver])
+        #p = pool.apply_async(func=fit_data, args = (model, filename, myQueue, otherArgs), callback = update_page)
+        #return "Your data is being processed.  The page will automatically update after"
 
     elif request.method == "POST":
         file = request.files['test_file']
@@ -126,8 +154,6 @@ def train_model():
             return redirect(url_for('test_model', test_fn=filename, D= dimensionality) )
         flash("You're file could not be uploaded")
         return redirect(url_for('process_data'))
-
-        
 
 @app.route('/inference/<test_fn>/<D>/', methods= ["GET","POST"])
 def test_model(test_fn, D, score = None):
@@ -150,6 +176,7 @@ def test_model(test_fn, D, score = None):
 
 
 if __name__ == '__main__':
-	app.run()
+    app.run()
     #app.run(host='0.0.0.0')
     #app.run(host='0.0.0.0' , port = 8000)
+

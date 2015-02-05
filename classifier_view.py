@@ -14,4 +14,6 @@ def show_post_processing(filename, baseRates, totalDocs, uniqueWords, modelList)
         return render_template("after_processing.html", filename = filename, baseRates = baseRates, totalDocs = totalDocs, uniqueWords = uniqueWords, models = modelList)
 
 def show_post_training(trainingResults, numFeatures):
+        print 'succeeded!'
         return render_template("after_training.html", results = trainingResults, D = numFeatures)
+

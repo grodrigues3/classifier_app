@@ -2,9 +2,8 @@
 {% block body %}
   {% if error %}<p class=error><strong>Error:</strong> {{ error }}
   
-  {% else %}
-  <h1> 
-      {{error}} </h1>{% endif %}
+  {% endif %}
+
   {% if session.logged_in %}
     <form action="" method=post class=add-entry enctype=multipart/form-data>
       <dl>

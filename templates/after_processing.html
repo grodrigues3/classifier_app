@@ -26,7 +26,6 @@
             </tr>
 
         {% endfor %}
-
     </table>
     </ul>
     <h2> Configure Training </h2>
@@ -35,6 +34,7 @@
         <ul id="formInputs">
             <input type=hidden value="{{filename}}" name="filename" form = modelAndRep>
             <input type=hidden value="{{uniqueWords}}" name="uniqueWords" form = modelAndRep>
+            <input type=hidden value = {{ baseRates|length }} name=numClasses > 
 
             {% if models|length < 1 %}
                   <h3> No models are available </h3>
@@ -94,7 +94,7 @@
         }
 
         //generate new ones
-        if( modelType== "SGD_Classifier"){
+        if( modelType== "Garrett's SGDClassifier"){
             displayRepresentationChoice()
             var nIters=document.createElement('input');
             var nItersDesc = document.createElement('p');
@@ -108,7 +108,7 @@
             document.getElementById('moreOptions').appendChild(nIters);
             document.getElementById('moreOptions').insertBefore(nItersDesc, nIters);
 
-        }else if(modelType == "Sklearn Logistic Regression" || modelType == "Garrett's Logistic Regression"){
+        }else if(modelType == "Sklearn SGDClassifier" || modelType == "Garrett's Logistic Regression"){
             displayRepresentationChoice()
             var regChoice=document.createElement('input');
             var regChoiceDesc = document.createElement('p');

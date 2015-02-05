@@ -2,7 +2,7 @@ from my_trainer.Preprocessor import Preprocessor
 from my_trainer.Logistic_Regression import Logistic_Regression as LR
 from my_trainer.SGDClassifier import SGDClassifier as SGD
 from multiprocessing import Process
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.grid_search import GridSearchCV
 import numpy as np
 import time, pdb
@@ -43,8 +43,7 @@ def fit(modelType, fn, **params):
     @return results: return list of dictionaries of values
     e.g: [ {'Training Error': .95, 'Validation Error': .92, 'Number of Features': 10**6}]
     """
-    numFolds = 10
-    if modelType == "Sklearn Logistic Regression" \
+    if modelType == "Sklearn SGDClassifier" \
             or modelType == "Garrett's Logistic Regression":
 
         #Both Sklearn and my implementation take in essentially the same arguments
@@ -58,17 +57,24 @@ def fit(modelType, fn, **params):
         try:
             regValues = [float(i) for i in params['regValues'].split(',')]
         except:
+            #default reg values for CV
             regValues =[10** i for i in range(-2,2)]
 
         try:
             pen = [params['penalty']]
         except:
             pen = ['l2']
+
+        try:
+            n_iters = [params['nIters']]
+        except:
+            n_iters = [40]
         train, trainLabels = getData(fn, numFeats = D)
 
-        if modelType == "Sklearn Logistic Regression":
-            param_grid = {'penalty': pen,  'C': regValues}
-            clf = GridSearchCV(LogisticRegression(), param_grid, cv = numFolds)
+        if modelType == "Sklearn SGDClassifier":
+            param_grid ={'loss' : ['log'], 'penalty': pen,  'alpha': regValues , 'n_iter':n_iters}
+            numFolds = 10
+            clf = GridSearchCV(SGDClassifier(), param_grid, cv = numFolds, verbose=1)
         elif modelType == "Garrett's Logistic Regression":
             toRet = [] 
             bestScore = 0
@@ -83,7 +89,7 @@ def fit(modelType, fn, **params):
                 toRet += [ {'Lambda': l, 'Validation Score': valScore, 'Training Score': clf.score(trainingData, trainLab) , 'Training Loss': best_cost}]
             return D, toRet
               
-    elif modelType == "SGD_Classifier":
+    elif modelType == "Garrett's SGDClassifier":
         try:
             D = int(params['numFeatures'])
         except:
@@ -93,9 +99,9 @@ def fit(modelType, fn, **params):
                 D = 10**5
         return D, fit_sgd(fn, **params)
     elif modelType == "Neural Network":
-        pass
+        pass #not yet implemented
     elif modelType == "Naive Bayes":
-        pass
+        pass #not yet implemented
     res = clf.fit(train, trainLabels).grid_scores_
     toRet = []
     for scoreTuple in res:

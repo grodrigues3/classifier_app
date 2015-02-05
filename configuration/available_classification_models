@@ -1,4 +1,5 @@
-SGDClassifier
-LogisticRegression
-Support Vector Machine (SVM)
-Neural Network
+Garrett's SGDClassifier
+Sklearn SGDClassifier
+Garrett's Logistic Regression
+#Naive Bayes
+#Neural Network
