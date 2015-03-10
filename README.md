@@ -1,8 +1,8 @@
 # classifier_app
-
-This is a web application written using python and flask that satisfies the following:
 Author: Garrett Rodrigues
+
 -------------------------------------------------------------------------
+This is a web application written using python and flask that satisfies the following:
 """
 Create a web application that does the following:
 - On the client side, create a web interface to enter a labeled text dataset in any format you want (or multiple formats).
